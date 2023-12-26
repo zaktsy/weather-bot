@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  weather-bot:
+    build:
+      dockerfile: Dockerfile
+    container_name: weather-bot
+    env_file: .env
+    environment:
+      - token=empty
+      - weatherApi=empty
+      - geocoderApi=empty
+    entrypoint: /bin/main
+    command: -token=${token} -weatherApi=${weatherApi} -geocoderApi=${geocoderApi}
+    user: root
