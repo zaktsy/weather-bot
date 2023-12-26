@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: weather-bot
     env_file: .env
+    restart: always
     environment:
       - token=empty
       - weatherApi=empty

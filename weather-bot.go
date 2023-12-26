@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -51,7 +52,7 @@ func main() {
 		rawCity := strings.TrimSpace(update.Message.Text)
 		cityMessage, err := GetNormalizedCityMessage(rawCity, *geocoderApi)
 		if err != nil {
-			bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Извините, не смог понять, погода какого города вам нужна"))
+			bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, cityMessage))
 			continue
 		}
 
@@ -79,10 +80,15 @@ func GetNormalizedCityMessage(rawCity string, geocoderApi string) (string, error
 	data, _ := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(data, &geocoder); err != nil {
 		log.Println(err)
-		return fmt.Sprintf("Извините, не смог узнать погоду в городе %s", rawCity), err
+		return fmt.Sprintf("Извините, не смог найти город %s", rawCity), err
+	}
+	members := geocoder.Response.GeoObjectCollection.FeatureMember
+	if len(members) == 0 {
+		return fmt.Sprintf("Извините, не смог найти город %s", rawCity), errors.New("нет городов")
 	}
 
-	return geocoder.Response.GeoObjectCollection.FeatureMember[0].GeoObject.Name, nil
+	city := geocoder.Response.GeoObjectCollection.FeatureMember[0].GeoObject.Name
+	return city, nil
 }
 
 func getWeatherMessage(city string, weatherApi string) string {
